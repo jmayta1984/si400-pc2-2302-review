@@ -29,3 +29,17 @@ create table cursos (
 	constraint pk_cursos primary key (codigo)
 )
 go
+
+create table matriculas (
+	codigo int not null identity(1,1),
+	codigo_estudiante nchar(3) not null,
+	codigo_curso int not null,
+	horas int not null,
+	fecha_reserva date null,
+	fecha_matricula date null,
+	mensualidad money not null,
+	control_proceso nvarchar(15) not null,
+	constraint pk_matriculas primary key (codigo),
+	constraint fk_estudiantes_matriculas foreign key (codigo_estudiante) references estudiantes (codigo),
+	constraint fk_cursos_matriculas foreign key (codigo_curso) references cursos (codigo)
+)
