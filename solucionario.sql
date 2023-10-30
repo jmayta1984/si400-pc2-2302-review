@@ -78,6 +78,7 @@ begin
 end
 go
 
+
 create procedure actualizar_matricula
 	@codigo_matricula int,
 	@control_proceso nvarchar(15) = 'Matriculado',
@@ -86,7 +87,6 @@ as
 begin
 	begin try
 		begin transaction
-		
 			if (select count(*) from matriculas where codigo = @codigo_matricula and control_proceso = 'Reservado') = 0  
 			begin
 				update matriculas 
@@ -105,5 +105,29 @@ begin
 		print error_message()
 		rollback 
 	end catch
+end
+go
+
+
+create trigger tri_auditorias_matriculas on matriculas
+for insert, update
+as
+
+begin
+
+	if exists  (select * from inserted)
+	begin
+		if exists (select * from deleted)
+		begin
+			insert into auditorias_matriculas (codigo_matricula,descripcion, fecha_registro, usuario)
+			select codigo, 'Matricula Actualizada', getdate(), suser_sname()  from inserted 
+		end
+		else
+		begin
+			insert into auditorias_matriculas (codigo_matricula,descripcion, fecha_registro, usuario)
+			select codigo, 'Matricula Reservada', getdate(), suser_sname()  from inserted 
+		end
+		
+	end
 end
 go
