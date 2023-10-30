@@ -43,3 +43,67 @@ create table matriculas (
 	constraint fk_estudiantes_matriculas foreign key (codigo_estudiante) references estudiantes (codigo),
 	constraint fk_cursos_matriculas foreign key (codigo_curso) references cursos (codigo)
 )
+
+create table auditorias_matriculas (
+	codigo int not null identity(1,1),
+	fecha_registro date null,
+	codigo_matricula int null,
+	descripcion nvarchar(50) null,
+	usuario nvarchar(50) null,
+	constraint pk_auditorias_matriculas primary key (codigo)
+)
+go
+
+create procedure insertar_matricula
+	@codigo_estudiante nchar(3),
+	@codigo_curso int,
+	@horas int,
+	@mensualidad money,
+	@control_proceso nvarchar(15) = 'Reservado'
+as
+begin
+	begin try
+		begin transaction
+			insert into matriculas (codigo_estudiante, codigo_curso, horas, fecha_reserva,
+			mensualidad, control_proceso)
+			values (@codigo_estudiante, @codigo_curso, @horas, getdate(), @mensualidad, @control_proceso)
+			print ('Proceso de matrícula conforme')
+		commit 
+	end try
+	begin catch
+		print error_message()		
+		rollback transaction
+	end catch
+
+end
+go
+
+create procedure actualizar_matricula
+	@codigo_matricula int,
+	@control_proceso nvarchar(15) = 'Matriculado',
+	@fecha_matricula date
+as
+begin
+	begin try
+		begin transaction
+		
+			if (select count(*) from matriculas where codigo = @codigo_matricula and control_proceso = 'Reservado') = 0  
+			begin
+				update matriculas 
+				set control_proceso = @control_proceso, fecha_matricula = getdate()
+				where codigo = @codigo_matricula and control_proceso = 'Reservado'
+				print ('Proceso de matrícula actualizado')
+				commit transaction
+			end 
+			else 
+			begin
+				print ('La matrícula ya se encuentra en estado de matriculado')
+				rollback
+			end		
+	end try
+	begin catch 
+		print error_message()
+		rollback 
+	end catch
+end
+go
