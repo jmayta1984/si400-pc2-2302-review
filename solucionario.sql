@@ -131,3 +131,27 @@ begin
 	end
 end
 go
+
+create function f_cantidad_estudiantes_por_categoria(@categoria nvarchar(20)) returns int
+as
+
+begin
+	declare @cantidad int
+	set @cantidad = (select count(codigo)
+				from estudiantes
+				where categoria  = @categoria)
+	return @cantidad
+end
+go
+
+create function f_cantidad_disponibles_por_curso(@codigo_curso int) returns int
+as
+
+begin
+	declare @cantidad int
+	set @cantidad = (select sum(vacantes-matriculados)
+				from cursos
+				where codigo  = @codigo_curso)
+	return @cantidad
+end
+go
